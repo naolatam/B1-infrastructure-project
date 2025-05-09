@@ -44,7 +44,7 @@ This section provides a step-by-step guide to installing WordPress on Pterodacty
     - You can download the egg [here](./nginx-egg-pterodactyl.json)
 
 ### 2. **Create a New Server**
-- *This part retake the same process that the one explained [here](./Web.md#5-create-a-new-server) but with more specific details*
+- *This part retake the same process that the one explained [here](./Pterodactyl.md#5-create-a-new-server) but with more specific details*
 
 1. Go to the **Servers** section and click **Create New**.
 2. Fill in the required details:
@@ -84,7 +84,8 @@ Your WordPress site is now ready to use! For further customization, refer to the
     3. Move the content of `wordpress` folder to your webroot folder
     4. Remove archive files and empty `wordpress` folder.
     5. Configure a web server to serve the wordpress file. 
-        - For wordpress, you can re-use the [web server configuration](./Web.md#6-webserver-configuration) from Pterodactyl panel. Don't forget you can customize it/adding SSL, for more detailed instructions about adding a SSL, you can refer to the [SSL obtention guide](#2-obtain-an-ssl-certificate) and to the [Reverse Proxy SSL Configuration](#3-add-the-certificate) to configure NGINX. The configuration for a website and for a Reverse Proxy is the same in this case.
+        - For wordpress, you can re-use the [web server configuration](./Pterodactyl.md#6-webserver-configuration) from Pterodactyl panel. Don't forget you can customize it/adding SSL, for more detailed instructions about adding a SSL, you can refer to the [SSL obtention guide](#2-obtain-an-ssl-certificate) and to the [Reverse Proxy SSL Configuration](#3-add-the-certificate) to configure NGINX. The configuration for a website and for a Reverse Proxy is the same in this case.   
+        For configuring from scratch, you can follow the NGINX [user documentation](./WebServer.md)
 - Here is the script to make that (from 1 to 4 only):
     ```
     cd /mnt/server/webroot # move to the webroot folder
@@ -100,7 +101,7 @@ This section provides a step-by-step guide to setting up a reverse proxy for you
 
 ### 1. **Install a Web Server**
 
-- Ensure you have a web server installed on your reverse proxy machine (e.g., Nginx or Apache) (if you have followed the [documentation for installing Pterodactyl](./Web.md), you already have NGINX installed).
+- Ensure you have a web server installed on your reverse proxy machine (e.g., Nginx or Apache) (if you have followed the [documentation for installing Pterodactyl](./Pterodactyl.md), you already have NGINX installed on the VM that's running Pterodactyl Panel).
 
 - If not installed, use the following commands to install Nginx or Apache:
 - For Nginx:
@@ -149,7 +150,7 @@ This section provides a step-by-step guide to setting up a reverse proxy for you
     ```bash
     sudo ln -s /etc/nginx/sites-available/wordpress.conf /etc/nginx/sites-enabled/
     ```
-- Now check the configuration, if there is no error and reload NGINX. You can refer to [Pterodactyl guide](./Web.md#6-webserver-configuration) for more details
+- Now check the configuration, if there is no error and reload NGINX. You can refer to [Pterodactyl guide](./Pterodactyl.md#6-webserver-configuration) for more details
     ```
     sudo nginx -t
     sudo systemctl reload nginx

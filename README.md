@@ -67,6 +67,7 @@ This document explains the setup and configuration of the infrastructure, which 
 ### Domain Name
 
 For this project, we own the `infra.doomoon.fr` subdomain. We have full administrative access, allowing us to create and manage unlimited subdomains under it. This flexibility enables us to allocate specific subdomains for different services or applications as needed, ensuring a clean and organized structure for external access.
+We use `blog.infra.doomoon.fr` on this documentation for hosting a WordPress website.
 
 ---
 
@@ -141,30 +142,29 @@ Refer to the [Security documentation](./Security/Security.md) for detailed secur
 -   **Scalability**: Design the infrastructure to allow easy addition of new services, VMs, or nodes as the project grows (with Pterodactyl).
 -   **User Authentication**: Use strong authentication mechanisms, such as SSH keys and two-factor authentication, for accessing servers and panel.
 
----
+--- 
+# Issue documentation:
+The following section is included in this documentation as it was explicitly required by the project guidelines. However, it does not serve as a traditional documentation of the infrastructure setup or configuration. Instead, it provides an overview of the challenges encountered during the implementation process and the solutions applied to resolve them. This inclusion aims to offer insights into the troubleshooting steps and decisions made throughout the project.
 
-# Outside of documentation:
-
-Voici les différents problème que l'on a rencontré lors de la mise en place de l'infrastructure:
-
-## Problème: **Wordpress ne s'installé pas**
+## Problem: **Wordpress does not install**.
 
 ### Description:
 
-L'oeuf pour installer des applications web dans des containers docket via pterodactyl utilises la commande wget pour installer l'archive de wordpress, or, le serveur renvoie une erreur avec un status code 434 signifiant que la version de TLS utilisés est invalide.
-De plus le serveur n'étaient pas installés correctement car PHP ne pouvait pas s'éxécuter en raison de l'inexistance du dossier dans le quel le socket est censé être créé.
+The egg to install web applications in docker containers via pterodactyl uses the wget command to install the wordpress archive, but the server returns an error with a status code 434 meaning that the TLS version used is invalid.
+In addition, the server was not installed correctly, as PHP could not be executed due to the non-existence of the folder in which the socket is supposed to be created.
 
 ### Solution:
 
-Modifié le script d'installation pour utilisé curl au lieu de wget.
-Tout d'abord, il faut installer curl, car l'image utilisé pour l'installation, l'image alpine est une image linux très légére avec le minimum de packet installé, nous devons donc d'abord installé curl avec la commande suivante
+To correct the problem, we've modified the installation script to use curl instead of wget.
+First of all, we need to install curl, because the image used for installation, the alpine image, is a very light linux image with the minimum packet installed, so we first need to install curl with the following command
+
 
 ```
 apk --update add curl
 ```
 
-Cette commande permet d'installer curl tout en mettant à jour la listes des packets.
-Nous pouvons désormais remplacer la condition et le bloc de code permettant d'installer wordpress par le code suivant:
+This command installs curl while updating the list of packets.
+We can now replace the condition and the block of code used to install wordpress with the following code:
 
 ```
 if [ "${WORDPRESS}" == "true" ] || [ "${WORDPRESS}" == "1" ]; then
@@ -179,24 +179,26 @@ if [ "${WORDPRESS}" == "true" ] || [ "${WORDPRESS}" == "1" ]; then
 fi
 ```
 
-Pour résoudre le deuxième problèmes de dossiers, nous devons ajoutés la lignes suivantes:
+To solve the second folder problem, we need to add the following line:
 
 ```
 mkdir /mnt/server/tmp /mnt/server/logs
 ```
 
-Cette commande permet de créé le dossier tmp et logs sur le serveur. Le dossier `logs` est nécéssaire pour nginx qui cause une erreur et arrête de fonctionner si on ne le mets pas.
+This command creates the `tmp` and `logs` folders on the server. The `logs` folder is necessary for nginx, which causes an error and stops working if you don't put it there.
 
-## Problème: **Les packets n'étaient pas envoyé à cause du MTU.**
+
+## Problem: **Packets were not sent because of the MTU.
 
 ### Description:
 
-L'interface réseau définit par les wings pour configurer le réseau sur docker étaient de 1500. Ce n'aurait pas poser de soucis en condition classique car le MTU de 1500 est par défaut sur la machine. Or, dans notre cas, c'est problèmatique car la machine est connecté à un VPN, qui lui utilise un MTU de 1420, bien sur, tout le traffic doit passer par le VPN, donc les packets de 1500 Bytes étaient bloqué au niveau de l'envoie par le VPN.
-Le VPN a un MTU (1420) plus bas afin de garantir la sécurité, ceci lui permet de rajouter des données à chaque packets pour les sécurisés (encapsulation).
+The network interface defined by wings to configure the network on docker was 1500. This wouldn't have been a problem in conventional conditions, as the machine's default MTU is 1500. However, in our case, this is problematic because the machine is connected to a VPN, which uses an MTU of 1420. Of course, all traffic must pass through the VPN, so the 1500 Byte packets were blocked from being sent by the VPN.
+The VPN has a lower MTU (1420) to guarantee security, allowing it to add data to each packet to secure them (encapsulation).
+
 
 ### Solution:
 
-Nous avons du réduire le MTU de l'interface réseau de docker en rajoutant dans le fichier `/etc/docker/daemon.json` le contenu suivant:
+We had to reduce the MTU of the docker network interface by adding the following content to the `/etc/docker/daemon.json` file:
 
 ```
 {
@@ -204,28 +206,28 @@ Nous avons du réduire le MTU de l'interface réseau de docker en rajoutant dans
 }
 ```
 
-Cela permet de garantir que docker n'enverra pas de packet qui ont une taille supérieur à 1392 Bytes à partir de ses réseaux virtuels.
-Cependant cela ne suffit pas, étant donné que pterodactyl avec les wings crée un réseau virtuel dédié, nommé 'pterodactyl_nw'.
-Nous avons donc du modifier le fichier de configuration des wings sur le serveur en définissant la valeur du MTU a `1392` dans le fichier
-`/etc/pterodactyl/config.yml`. Voici une commande qui ferait le changement pour vous:
+This ensures that docker will not send packets larger than 1392 bytes from its virtual networks.
+However, this is not enough, as pterodactyl with wings creates a dedicated virtual network, named 'pterodactyl_nw'.
+We therefore had to modify the wings configuration file on the server, setting the MTU value to `1392` in the file
+/etc/pterodactyl/config.yml` file. Here's a command that would make the change for you:
 
 ```
 sed -i 's/network_mtu: 1500/network_mtu: 1392/' /etc/pterodactyl/config.yml
 ```
 
-Il faut ensuite supprimer le réseau de docker avec la commande suivante:
+Then remove the docker network with the following command:
 
 ```
 docker network rm pterodactyl_nw
 ```
 
-et pour terminer, il faut redémarrer les wings pour recréé le réseau avec les bonnes valeurs:
+and finally, you need to restart the wings to recreate the network with the correct values:
 
 ```
 systemctl restart wings
 ```
 
-Voici toutes les commandes à éxécutés regroupés:
+Here are all the commands to be executed grouped together:
 
 ```
 echo '{"mtu": 1392}' > /etc/docker/daemon.json
@@ -237,8 +239,9 @@ systemctl restart wings
 
 ### Infos:
 
-Wireguard utilise un MTU inférieur de 80 à celui de l'interface réseau principale. Cela est du au fait qu'il encapsule les packets pour y rajouter une sur-charge (headers) contenant les en-têtes de protocoles et ses propres en-têtes, cela correspond donc environ à 60 octets. Les 20 octets supplémentaire sont utilisés dans le cas d'ipv6 incluant une sur-charge supplémentaire de 20 octets.
-Le MTU de 1392 correspond à une en-tête supplémentaire car nous avons remarqué que la taille des packets que nous souhaitons envoyés, étaient toujours augmenté de 28. On a aperçu cela grâce au requêtes ping, lorsuq'on utilise la commande `ping` avec l'option `-s 1420`, pour signifier d'envoyer des packets de 1420 octets, on constate que les packets ne s'envoient pas à cause du MTU, et que la taille des packets envoyés est de 1448. On voit donc bien une différence de 28 octets. Et donc pour s'assurer que les packets pourront passer, nous avons limités le MTU à 1392 (1420-28)
+Wireguard uses an MTU that is 80 bytes lower than that of the main network interface. This is due to the fact that it encapsulates packets and adds an overhead (headers) containing protocol headers and its own headers, so it corresponds to around 60 bytes. The extra 20 bytes are used in the case of ipv6, which includes an additional overhead of 20 bytes.  
+The MTU of 1392 corresponds to an additional header, as we noticed that the size of the packets we wanted to send was always increased by 28. When we use the `ping` command with the `-s 1420` option, to send packets of 1420 bytes, we see that the packets are not sent because of the MTU, and that the size of the packets sent is 1448. This represents a difference of 28 bytes. And so, to ensure that the packets can get through, we've limited the MTU to 1392 (1420-28).
+
 
 ```
 root@VM-Extra:~# ping -M do -s 1400 8.8.8.8
@@ -246,25 +249,26 @@ PING 8.8.8.8 (8.8.8.8) 1400(1428) bytes of data.
 ping: local error: message too long, mtu=1420
 ```
 
-## Problème: **La virtualisation imbriquée (nested virtualization) n'était pas activée**
+## Problem: **Nested virtualization was not enabled**.
 
 ### Description:
 
-Lors de la mise en place de l'infrastructure, nous avons rencontré un problème où les machines virtuelles (VMs), qui utilisait une technologie `LXC` (pour `Linux Container`) ne pouvaient pas faire de la virtualisation. Cela était dû au fait que la virtualisation imbriquée (nested virtualization) n'était pas activée dans la configuration des VMs sur Proxmox.
+When setting up the infrastructure, we encountered a problem where the virtual machines (VMs), which used `LXC` (for `Linux Container`) technology, couldn't do virtualization. This was due to the fact that nested virtualization was not enabled in the configuration of VMs on Proxmox.
 
-La virtualisation imbriquée est essentielle pour permettre à une VM d'utiliser des technologies comme Docker, qui nécessite les accès à la virtualisation.
+Nested virtualization is essential to enable a VM to use technologies such as Docker, which requires virtualization access.
+
 
 ### Solution:
 
 Pour résoudre ce problème, nous avons activé la virtualisation imbriquée sur Proxmox. Voici comment faire:
 
--   Assurez vous que votre processeur le supporte.
--   Assurez vous d'avoir un accès à l'hote des VM.
--   Activer la virtualisation imbriqués dans le fichier de configuration du conteneur LXC situé dans `/etc/pve/lxc/<CTID>.conf` et ajoutez la ligne suivante :
+- Make sure your processor supports it.
+- Make sure you have access to the VM's host (proxmox).
+- Enable nested virtualization in the LXC container configuration file located in `/etc/pve/lxc/<CTID>.conf` and add the following line:
     ```
     features: nesting=1
     ```
--   Redémarrez le conteneur concerné pour appliquer les modifications ou bien avec l'interface graphique de Proxmox, ou bien avec la commande suivante:
+- Restart the relevant container to apply the changes, either with the Proxmox GUI, or with the following command:
     ```shell
     pct reboot <CTID>
     ```

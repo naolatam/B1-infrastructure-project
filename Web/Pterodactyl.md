@@ -255,7 +255,7 @@ The **apt** package manager.
             |   Database port   |       3306        |    Port     | The port used to connect to your database server.                                                             |
             |   Database name   |       panel       |   String    | The name of the database created for Pterodactyl.                                                             |
             | Database username |    pterodactyl    |   String    | The username created for accessing the database.                                                              |
-            | Database password |        N/a        |   String    | The password of the pterodactyl user, you have set it in this [step](#1-create-mysql-user-and-database) user. |
+            | Database password |        N/a        |   String    | The password of the pterodactyl user, you have set it in this [step](#1-create-mysql-user-and-database). |
 
         - Pterodactyl provides a script to prepare the database. It will create all tables and fill them with default values such as some eggs.
         - To do it, use the following command:
@@ -417,7 +417,7 @@ Before creating a database host, ensure you have a MySQL user with the appropria
 3. **Grant Permissions**:
     - Assign the necessary permissions to the user:
       ```sql
-      GRANT ALL PRIVILEGES ON *.* TO 'pterodactyl'@'127.0.0.1' WITH GRANT OPTION;
+      GRANT ALL PRIVILEGES ON *.* TO 'pterodactyl_db'@'%' WITH GRANT OPTION;
       ```
     - This grants the user full access to manage databases.
 4. **Flush Privileges**:

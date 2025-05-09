@@ -37,7 +37,7 @@ Grafana is used to visualize metrics collected by different sources (Prometheus 
             - Log in to the Pterodactyl admin panel.
             - Navigate to **Nests > Import Egg**.
             - Upload the downloaded JSON file.
-            - Assign the egg to an existing nest or create a new one.
+            - Assign the egg to an existing nest or create a new one. (refer to Pterodactyl [usage documentation](../Web/Pterodactyl.md) for more details about creating a new Nest.)
             - Save the changes and ensure the egg is available for use.
 
         2. **Create a Server on Pterodactyl**
@@ -57,7 +57,7 @@ Grafana is used to visualize metrics collected by different sources (Prometheus 
 
     2. **Using docker**:
         1. **Storage**
-            - To ensure you will not need to remake the grafana configuration at all restart, we create a docker volume to store them.
+            - To ensure you will not need to remake the grafana configuration every time you restart, we create a docker volume to store them.
             ```
             docker volumes create grafana-storage
             ```
@@ -86,7 +86,9 @@ Grafana is used to visualize metrics collected by different sources (Prometheus 
     - Enter the Prometheus server URL (e.g., `http://<prometheus-server-ip>:9090`) and save.
 
 4. **Import Dashboards**:
-    - Use prebuilt dashboards from the [Grafana Dashboard Library](https://grafana.com/grafana/dashboards/) or create custom ones.
+    - Navigate to **Dashboard** in Grafana.
+    - Click **New** button and select **Import** if you want to import a prebuilt dashboards from the [Grafana Dashboard Library](https://grafana.com/grafana/dashboards/).
+    - Or select **New dashboard** for creating it your seulf
 
 ---
 
@@ -105,11 +107,11 @@ Prometheus is a temporal database used to scrape and store metrics from Node Exp
         1. **Fix Prometheus egg for Pterodactyl**:
 
             - The Prometheus egg was updated to work with Pelican, and don't work anymore with pterodactyl.
-            - We have fixed it, you can now get the valid one for pterodactyl [here](./Web-prometheus-egg.json)
+            - We have fixed it, you can now get the valid one for pterodactyl [here](./pterodactyl-prometheus-egg.json)
 
         2. **Import Prometheus Egg on Pterodactyl**:
 
-            - Download the fixed Prometheus egg from the provided link: [Prometheus Egg](./Web-prometheus-egg.json).
+            - Download the fixed Prometheus egg from the provided link: [Prometheus Egg](./pterodactyl-prometheus-egg.json).
             - Log in to the Pterodactyl admin panel.
             - Navigate to **Nests > Import Egg**.
             - Upload the downloaded JSON file.
@@ -209,10 +211,10 @@ So it should be installed directly on the system rather than in a Docker contain
 
 2.  **Download the Node Exporter binary**:
 
-    -   Visit the [official Prometheus download page](https://prometheus.io/download/) and copy the link for the latest Node Exporter binary compatible with Linux.
+    -   Visit the [official Prometheus download page](https://prometheus.io/download/#node_exporter) and copy the link for the latest Node Exporter binary compatible with Linux.
         -   Use `wget` to download the binary:
-        ```bash
-        wget https://github.com/prometheus/node_exporter/releases/download/v1.9.1/node_exporter-1.9.1.linux-amd64.tar.gz
+        ```shell
+        wget https://github.com/prometheus/node_exporter/releases/download/v1.9.1/node_exporter-1.9.1.linux-amd64.tar.gz # replace this link by the link of the last version
         ```
 
     3. **Extract the downloaded archive**:

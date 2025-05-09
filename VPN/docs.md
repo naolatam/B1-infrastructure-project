@@ -36,27 +36,27 @@ PrivateKey = <private key>
 
 # VM-100-INTRA
 [Peer]
-PublicKey = <public key>
+PublicKey = <client public key>
 AllowedIPs = 10.0.0.2/32
 
 # VM-102-EXTRA
 [Peer]
-PublicKey = <public key>
+PublicKey = <client public key>
 AllowedIPs = 10.0.0.3/32
 
 # CLIENT-DANTES
 [Peer]
-PublicKey = <public key>
+PublicKey = <client public key>
 AllowedIPs = 10.0.0.4/32
 
 # CLIENT-WAYDE
 [Peer]
-PublicKey = <public key>
+PublicKey = <client public key>
 AllowedIPs = 10.0.0.5/32
 
 # CLIENT-DEVEX
 [Peer]
-PublicKey = <public key>
+PublicKey = <client public key>
 AllowedIPs = 10.0.0.6/32
 ```
 
@@ -69,7 +69,7 @@ Address = 10.0.0.2/32
 DNS = 1.1.1.1
 
 [Peer]
-PublicKey = <public key>
+PublicKey = <server public key>
 Endpoint = <ip>:51820
 AllowedIPs = 0.0.0.0/0
 PersistentKeepalive = 25
